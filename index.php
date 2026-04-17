@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="FYPTracker — Final Year Project Supervision and Progress Management System, Department of Computer Science, FULafia">
+  <meta name="description" content="FYPTracker — Final Year Project Supervision and Progress Management System,FULafia">
   <title>FYPTracker — Sign In</title>
 
   <!-- Fonts: Inter + JetBrains Mono -->
@@ -447,7 +447,7 @@ $infoMessage = get('message');
       <div class="brand-mark">
         <div class="brand-eyebrow">
           <span class="brand-eyebrow-dot"></span>
-          <span class="brand-eyebrow-text">Academic Year 2024 / 2025</span>
+          <span class="brand-eyebrow-text">Academic Year 2025 / 2026</span>
         </div>
 
         <div>
