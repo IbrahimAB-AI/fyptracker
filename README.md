@@ -181,4 +181,4 @@ The reports page exports PDF via FPDF. To enable:
 ---
 
 ## Academic Session
-2024 / 2025 — Department of Computer Science, FULafia
+2025 / 2026 — Department of Computer Science, FULafia
