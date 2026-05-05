@@ -8,6 +8,7 @@
  */
 
 require_once __DIR__ . '/../includes/functions.php';
+require_once __DIR__ . '/../includes/fulafia_departments.php';
 
 // Redirect if already logged in
 if (isLoggedIn()) {
@@ -25,6 +26,9 @@ verifyCsrf();
 $fullName     = post('full_name');
 $email        = post('email');
 $matricNumber = post('matric_number');
+$faculty      = post('faculty');
+$department   = post('department');
+$level        = (int) post('level');
 $password     = post('password');
 $confirmPass  = post('confirm_password');
 $errors       = [];
@@ -33,12 +37,35 @@ $errors       = [];
 if (mb_strlen($fullName) < 3 || mb_strlen($fullName) > 150) {
     $errors[] = 'Full name must be between 3 and 150 characters.';
 }
+
 if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
     $errors[] = 'Please enter a valid email address.';
 }
-if (!preg_match('/^FUL\/CS\/\d{4}\/\d{3,4}$/i', $matricNumber)) {
-    $errors[] = 'Matric number format must be FUL/CS/YYYY/NNN (e.g. FUL/CS/2021/001).';
+
+// Matric number: FUL/XX/YYYY/NNN — department code now varies, so we use a
+// broader pattern instead of the old CS-only one.
+if (!preg_match('/^FUL\/[A-Z]{2,6}\/\d{4}\/\d{3,4}$/i', $matricNumber)) {
+    $errors[] = 'Matric number format must be FUL/XX/YYYY/NNN (e.g. FUL/CS/2021/001).';
 }
+
+// Faculty must be one of the known faculties
+$validFaculties = array_keys(FULAFIA_FACULTIES);
+if (!in_array($faculty, $validFaculties, true)) {
+    $errors[] = 'Please select a valid faculty.';
+}
+
+// Department must belong to the selected faculty
+$validDepartments = FULAFIA_FACULTIES[$faculty] ?? [];
+if (empty($department) || !in_array($department, $validDepartments, true)) {
+    $errors[] = 'Please select a valid department that belongs to the chosen faculty.';
+}
+
+// Level must be one of the recognised values
+$validLevels = [100, 200, 300, 400, 500, 600, 700];
+if (!in_array($level, $validLevels, true)) {
+    $errors[] = 'Please select a valid level.';
+}
+
 if (mb_strlen($password) < 8) {
     $errors[] = 'Password must be at least 8 characters.';
 }
@@ -85,7 +112,15 @@ try {
         'INSERT INTO students (student_id, matric_number, department, level)
          VALUES (?, ?, ?, ?)'
     );
-    $insStudent->execute([$userId, strtoupper($matricNumber), 'Computer Science', 400]);
+    $insStudent->execute([
+        $userId,
+        strtoupper($matricNumber),
+        $department,   // ← dynamic now
+        $level,        // ← dynamic now
+    ]);
+
+    // Optionally store faculty in a separate column if your students table has one.
+    // If not, faculty can always be derived via getFacultyForDepartment($department).
 
     $db->commit();
 
@@ -98,7 +133,7 @@ try {
     if ($admin) {
         createNotification(
             $admin['user_id'],
-            "New student registered: {$fullName} ({$matricNumber}). Please assign a supervisor.",
+            "New student registered: {$fullName} ({$matricNumber}) — {$department}, Level {$level}. Please assign a supervisor.",
             'admin/assign_supervisors.php'
         );
     }
